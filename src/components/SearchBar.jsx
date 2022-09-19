@@ -28,10 +28,10 @@ const SearchBar = (onSubmit, searchInput, handleChangeInput) => {
     );
 }
 
-// SearchBar.propTypes = {
-//     onSubmit: PropTypes.func,
-//     searchInput: PropTypes.string,
-//     handleChangeInput: PropTypes.func,
-// }
+SearchBar.propTypes = {
+    onSubmit: PropTypes.func,
+    searchInput: PropTypes.string,
+    handleChangeInput: PropTypes.func,
+}
 
 export default SearchBar;
