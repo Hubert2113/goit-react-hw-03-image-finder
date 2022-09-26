@@ -1,9 +1,11 @@
 
-
-const ImageGallery = () => {
+const ImageGallery = ({children, setCurrentImage}) => {
     return (
-        <ul className="gallery">
-          
+        <ul
+         className="ImageGallery"
+         onClick={setCurrentImage}
+        >
+          {children}
         </ul>
     );
 }

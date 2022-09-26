@@ -6,7 +6,7 @@ const SearchIcon = styled(Search)`
     color: #000;
 `;
 
-const SearchBar = (onSubmit, searchInput, handleChangeInput) => {
+const SearchBar = ({onSubmit, searchInput, handleChangeInput}) => {
     return (
         <header className="Searchbar">
           <form className="SearchForm" onSubmit={onSubmit}>
