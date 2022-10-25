@@ -1,4 +1,4 @@
-import { Component } from "react";
+import { useState } from "react";
 import SearchBar from "./SearchBar";
 import ImageGallery from "./ImageGallery";
 import ImageGalleryItem from "./ImageGalleryItem";
@@ -7,113 +7,101 @@ import Button from './Button';
 import Loader from './Loader';
 import Modal from './Modal'
 
-class App extends Component {
-  state = {
-    images: [],
-    searchInput: "",
-    page: 1,
-    isLoading: false,
-    currentImage: null,
-    currentDesc: null,
-  };
+const App = () => {
 
-  handleSubmit = async (ev) => {
+  let [images, setImages] = useState([]);
+  let [searchInput, setSearchInput] = useState('');
+  let [page, setPage] = useState(1);
+  let [isLoading, setLoading] = useState(false);
+  let [currentImage, setCurrentImage] = useState(null);
+  let [currentDesc, setCurrentDesc] = useState(null);
+
+  const handleSubmit = async (ev) => {
     ev.preventDefault();
     try {
-      const response = await finderInstance.get(`?q=${this.state.searchInput}&page=1&key=26547468-c672cf1e6b76e928b73769e65&image_type=photo&orientation=horizontal&per_page=12`);
-      this.setState({images: response.data.hits});
+      const response = await finderInstance.get(`?q=${searchInput}&page=1&key=26547468-c672cf1e6b76e928b73769e65&image_type=photo&orientation=horizontal&per_page=12`);
+      setImages(response.data.hits);
     } catch(error) {
       console.log(error);
     }
   };
 
-  handleChangeInput = (ev) => {
+  const handleChangeInput = (ev) => {
     ev.preventDefault();
-    this.setState({ searchInput: ev.target.value });
+    setSearchInput(ev.target.value);
   };
 
-  loadMore = async () => {
-    await this.setState({
-      isLoading: true,
-      page: this.state.page + 1
-    });
+  const loadMore = async () => {
+    await (() => {
+      setLoading(true);
+      setPage(page += 1);
+    })();
     try{
-      const response = await finderInstance.get(`?q=${this.state.searchInput}&page=${this.state.page}&key=26547468-c672cf1e6b76e928b73769e65&image_type=photo&orientation=horizontal&per_page=12`);
-      this.setState(prevState => ({
-        images: [...prevState.images, ...response.data.hits]
-      }));
+      const response = await finderInstance.get(`?q=${searchInput}&page=${page}&key=26547468-c672cf1e6b76e928b73769e65&image_type=photo&orientation=horizontal&per_page=12`);
+      setImages([...images, ...response.data.hits]);
     }catch(error){
       console.log(error);
     }finally{
-      this.setState({isLoading: false});
+      setLoading(false);
     }
   }
 
-  setCurrentImage = (ev) =>{
-    this.setState({
-      currentImage: ev.target.src,
-      currentDesc: ev.target.alt,
-    });
+  const setCurrentImageModal = (ev) =>{
+    setCurrentImage(ev.target.src);
+    setCurrentDesc(ev.target.alt);
   }
 
-  closeModalByESC = (ev) => {
-    console.log(ev.key);
+  const closeModalByESC = (ev) => {
     if(ev.key === "Escape"){
-      this.setState({
-        currentImage: null,
-        currentDesc: null,
-      });
+      setCurrentImage(null);
+      setCurrentDesc(null);
     }
   }
 
-  closeModalByClick = (ev) =>{
+  const closeModalByClick = (ev) =>{
     if(ev.target !== 'img'){
-      this.setState({
-        currentImage: null,
-        currentDesc: null,
-      });
+      setCurrentImage(null);
+      setCurrentDesc(null);
     }
   }
 
-  render(){
-    return (
-      <div
-        className='App'
-        onKeyDown={this.closeModalByESC}
-        tabIndex="-1"
-      >
-        <SearchBar
-          onSubmit={this.handleSubmit}
-          searchInput={this.state.searchInput}
-          handleChangeInput={this.handleChangeInput}
+  return (
+    <div
+      className='App'
+      onKeyDown={closeModalByESC}
+      tabIndex="-1"
+    >
+      <SearchBar
+        onSubmit={handleSubmit}
+        searchInput={searchInput}
+        handleChangeInput={handleChangeInput}
+      />
+      <ImageGallery setCurrentImage={setCurrentImageModal}>
+        {images.map(image => {
+          return (
+            <ImageGalleryItem
+              key={image.id}
+              imageSrc={image.webformatURL}
+              imageAlt={image.tags}
+            />
+          );
+        })}
+      </ImageGallery>
+      {isLoading && <Loader/>}
+      <Button
+        loadMore={loadMore}
+        isLoading={isLoading}
+        images={images}
+      />
+      {currentImage &&
+        <Modal
+          image={currentImage}
+          imageDesc={currentDesc}
+          closeModalByClick={closeModalByClick}
         />
-        <ImageGallery setCurrentImage={this.setCurrentImage}>
-          {this.state.images.map(image => {
-            return (
-              <ImageGalleryItem
-                key={image.id}
-                imageSrc={image.webformatURL}
-                imageAlt={image.tags}
-              />
-            );
-          })}
-        </ImageGallery>
-        {this.state.isLoading && <Loader/>}
-        <Button
-          loadMore={this.loadMore}
-          isLoading={this.state.isLoading}
-          images={this.state.images}
-        />
-        {this.state.currentImage &&
-          <Modal
-            image={this.state.currentImage}
-            imageDesc={this.state.currentDesc}
-            closeModalByClick={this.closeModalByClick}
-          />
-        }
-      </div>
-    );
-  }
+      }
+    </div>
+  );
 }
 
 export default App;
